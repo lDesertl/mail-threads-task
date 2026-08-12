@@ -1,5 +1,6 @@
 dushint@yandex.ru
 
+```bash
 pnpm install
 docker compose build
 docker compose up -d postgres
@@ -7,6 +8,7 @@ pnpm prisma migrate deploy
 docker compose up worker
 docker compose up exporter
 docker compose down
+```
 
 1. Как устроено хранение и почему? Какие таблицы, что чем является, почему выбрана такая схема?
 - Таблица SyncState для хранения состояния синхронизации (последний курсор и состояние импорта) и таблица Message, в которой каждая запись соответствует одному письму. Такая схема позволяет независимо выполнять импорт, ребилд цепочек и экспорт.
