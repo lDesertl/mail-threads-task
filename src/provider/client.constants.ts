@@ -1,0 +1,10 @@
+export const REQUEST_INTERVAL_MS = 105;
+export const REQUEST_TIMEOUT_MS = 105;
+export const LIMIT_PER_PAGE = "200";
+export const RETRY_AFTER_DEFAULT_SECONDS = 1
+export const HTTP_STATUS = {
+    OK: 200,
+    TOO_MANY_REQUESTS: 429,
+    INTERNAL: 500,
+    UNAVAILABLE: 503
+}

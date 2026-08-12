@@ -1,10 +1,5 @@
-# Почтовый сервис для тестового задания.
-# Свои службы дописывайте в этот же файл.
-# Обязательные имена служб: worker и exporter.
-
 services:
   provider:
-    # Образ скачивается сам при первом запуске, собирать его не нужно.
     image: ${PROVIDER_IMAGE:-gitea.teamlead.one/armanteam_public/mail-provider:1}
     environment:
       CANDIDATE: ${CANDIDATE:?укажите CANDIDATE в файле .env}
@@ -21,12 +16,43 @@ services:
       retries: 10
       start_period: 15s
 
-  # Пример подключения своей службы:
-  #
-  # worker:
-  #   build: .
-  #   depends_on:
-  #     provider:
-  #       condition: service_healthy
-  #   environment:
-  #     PROVIDER_URL: http://provider:8080
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: mail
+      POSTGRES_PASSWORD: mail
+      POSTGRES_DB: mail
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mail"]
+      interval: 3s
+      retries: 10
+
+  worker:
+    build: .
+    command: sh -c "pnpm run db:migrate && pnpm run worker"
+    depends_on:
+      provider:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://mail:mail@postgres:5432/mail
+      PROVIDER_URL: http://provider:8080
+
+  exporter:
+    build: .
+    command: pnpm run exporter
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://mail:mail@postgres:5432/mail
+    volumes:
+      - ./out:/app/out
+
+volumes:
+  pgdata:
